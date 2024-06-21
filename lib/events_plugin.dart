@@ -20,64 +20,69 @@ class EventsPlugin extends PlatformInterface {
   Future<bool?> requestAccess() async =>
       await channel.invokeMethod<bool>('requestAccess');
 
-//   Future<AppleCalendar?> getDefaultList() async {
-//     final list =
-//         await channel.invokeMapMethod<String, String>('getDefaultList');
-//     if (list case {'title': final title, 'id': final id}) {
-//       return AppleCalendar(title: title, id: id);
-//     }
-//     return null;
-//   }
+  Future<AppleCalendar?> getDefaultCalendar() async {
+    final list =
+        await channel.invokeMapMethod<String, String>('getDefaultCalendar');
+    if (list case {'title': final title, 'id': final id}) {
+      return AppleCalendar(title: title, id: id);
+    }
+    return null;
+  }
 
-//   Future<List<AppleCalendar>> getReminderLists() async {
-//     final lists = await channel
-//         .invokeListMethod<Map<Object?, Object?>>('getReminderLists');
-//     if (lists == null) return [];
-//     return lists
-//         .map<AppleCalendar>((list) => AppleCalendar(
-//             title: list['title']! as String, id: list['id']! as String))
-//         .toList();
-//   }
+  Future<List<AppleCalendar>> getCalendars() async {
+    final calendars =
+        await channel.invokeListMethod<Map<Object?, Object?>>('getCalendars');
+    if (calendars == null) return [];
+    return calendars
+        .map<AppleCalendar>((calendar) => AppleCalendar(
+            title: calendar['title']! as String, id: calendar['id']! as String))
+        .toList();
+  }
 
-//   Future<List> getReminders(AppleCalendar list) async {
-//     final reminders = await channel.invokeListMethod<Map<Object?, Object?>>(
-//         'getReminders', {'id': list.id});
-//     if (reminders == null) return [];
-//     return reminders
-//         .map<Reminder>((reminder) => Reminder.fromJson(reminder))
-//         .toList();
-//   }
-// }
+  Future<List<AppleEvent>> getEvents(AppleCalendar list) async {
+    final events = await channel
+        .invokeListMethod<Map<Object?, Object?>>('getEvents', {'id': list.id});
+    if (events == null) return [];
+    return events
+        .map<AppleEvent>((event) => AppleEvent.fromJson(event))
+        .toList();
+  }
+}
 
-// class Reminder {
-//   String list;
-//   final String id;
-//   final String title;
-//   DateTime? dueDate;
-//   int priority;
-//   bool isCompleted;
-//   String notes;
-//   final String url;
+class AppleEvent {
+  String calendar;
+  final String id;
+  final String title;
+  DateTime? startDate;
+  DateTime? endDate;
+  String location;
+  bool isAllDay;
+  String notes;
 
-//   Reminder.fromJson(Map<Object?, Object?> json)
-//       : list = json['list'] as String,
-//         id = json['id'] as String,
-//         title = json['title'] as String,
-//         dueDate = json['dueDate'] != null
-//             ? DateTime.tryParse(json['dueDate'] as String)
-//             : null,
-//         priority = int.tryParse(json['priority'] as String) ?? 0,
-//         isCompleted = json['isCompleted'] == 'true',
-//         notes = json['notes'] as String,
-//         url = json['url'] as String;
+  AppleEvent.fromJson(Map<Object?, Object?> json)
+      : calendar = json['calendar'] as String,
+        id = json['id'] as String,
+        title = json['title'] as String,
+        startDate = json['startDate'] != null
+            ? DateTime.tryParse(json['startDate'] as String)
+            : null,
+        endDate = json['endDate'] != null
+            ? DateTime.tryParse(json['endDate'] as String)
+            : null,
+        location = json['location'] as String,
+        isAllDay = json['isAllDay'] == 'true',
+        notes = json['notes'] as String;
 
-//   @override
-//   String toString() =>
-//       '$title is due $dueDate and is done: $isCompleted\n$url\t$notes';
-// }
+  @override
+  String toString() =>
+      '$title start $startDate for ${endDate?.difference(startDate!).inMinutes}\t$notes';
+}
 
-// class AppleCalendar {
-//   final String title;
-//   final String id;
-//   AppleCalendar({required this.title, required this.id});
+class AppleCalendar {
+  final String title;
+  final String id;
+  AppleCalendar({required this.title, required this.id});
+
+  @override
+  String toString() => title;
 }
