@@ -39,17 +39,15 @@ class EventsPlugin extends PlatformInterface {
         .toList();
   }
 
-  Future<List<AppleEvent>> getEvents(AppleCalendar list) async {
+  Future<List<Event>> getEvents(AppleCalendar list) async {
     final events = await channel
         .invokeListMethod<Map<Object?, Object?>>('getEvents', {'id': list.id});
     if (events == null) return [];
-    return events
-        .map<AppleEvent>((event) => AppleEvent.fromJson(event))
-        .toList();
+    return events.map<Event>((event) => Event.fromJson(event)).toList();
   }
 }
 
-class AppleEvent {
+class Event {
   String calendar;
   final String id;
   final String title;
@@ -59,7 +57,7 @@ class AppleEvent {
   bool isAllDay;
   String notes;
 
-  AppleEvent.fromJson(Map<Object?, Object?> json)
+  Event.fromJson(Map<Object?, Object?> json)
       : calendar = json['calendar'] as String,
         id = json['id'] as String,
         title = json['title'] as String,

@@ -21,7 +21,7 @@ class _MyAppState extends State<MyApp> {
   bool _hasAccess = false;
   AppleCalendar? _defaultCalendar;
   List<AppleCalendar> _calendars = [];
-  List<AppleEvent> _events = [];
+  List<Event> _events = [];
 
   @override
   void initState() {
