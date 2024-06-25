@@ -22,6 +22,7 @@ class _MyAppState extends State<MyApp> {
   AppleCalendar? _defaultCalendar;
   List<AppleCalendar> _calendars = [];
   List<Event> _events = [];
+  AppleCalendar? selectedCalendar;
 
   @override
   void initState() {
@@ -60,46 +61,67 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> getEvents(AppleCalendar calendar) async {
+    selectedCalendar = calendar;
     final events = await _eventsPlugin.getEvents(calendar);
     setState(() => _events = events);
+  }
+
+  Future<void> addEvent() async {
+    if (selectedCalendar == null) return;
+    final result = await _eventsPlugin.addEvent(Event(
+        calendar: selectedCalendar!.id,
+        title: 'Test new event',
+        isAllDay: false,
+        startDate: DateTime.now(),
+        endDate: DateTime.now().add(const Duration(hours: 1))));
+    print(result);
+    setState(() {
+      getEvents(selectedCalendar!);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        home: Scaffold(
-            appBar: AppBar(
-              title: _hasAccess
-                  ? Text('Default calendar: $_defaultCalendar')
-                  : TextButton(
-                      onPressed: requestAccess,
-                      child: const Text('Request access'),
-                    ),
-              actions: [Text(_platformVersion)],
-            ),
-            body: Row(
-              children: [
-                Flexible(
-                  child: ListView(
-                    shrinkWrap: true,
-                    children: _calendars
-                        .map<ListTile>((calendar) => ListTile(
-                            title: TextButton(
-                                onPressed: () => getEvents(calendar),
-                                child: Text(calendar.title))))
-                        .toList(),
-                  ),
+      home: Scaffold(
+        appBar: AppBar(
+          title: _hasAccess
+              ? Text('Default calendar: $_defaultCalendar')
+              : TextButton(
+                  onPressed: requestAccess,
+                  child: const Text('Request access'),
                 ),
-                Flexible(
-                  child: ListView(
-                      shrinkWrap: true,
-                      children: _events
-                          .map<ListTile>((event) => ListTile(
-                                title: Text(event.title),
-                              ))
-                          .toList()),
-                )
-              ],
-            )));
+          actions: [Text(_platformVersion)],
+        ),
+        body: Row(
+          children: [
+            Flexible(
+              child: ListView(
+                shrinkWrap: true,
+                children: _calendars
+                    .map<ListTile>((calendar) => ListTile(
+                        title: TextButton(
+                            onPressed: () => getEvents(calendar),
+                            child: Text(calendar.title))))
+                    .toList(),
+              ),
+            ),
+            Flexible(
+              child: ListView(
+                  shrinkWrap: true,
+                  children: _events
+                      .map<ListTile>((event) => ListTile(
+                            title: Text(event.title),
+                          ))
+                      .toList()),
+            )
+          ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: addEvent,
+          child: const Icon(Icons.add),
+        ),
+      ),
+    );
   }
 }

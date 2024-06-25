@@ -45,6 +45,16 @@ class EventsPlugin extends PlatformInterface {
     if (events == null) return [];
     return events.map<Event>((event) => Event.fromJson(event)).toList();
   }
+
+  Future<Map<String, String>> addEvent(Event event) async {
+    final result = await channel.invokeMapMethod<String, String>(
+        'addEvent', event.toJson());
+    if (result == null) return {'error': 'unknown error'};
+    return result;
+  }
+
+  Future<String?> deleteEvent(Event event) async =>
+      await channel.invokeMethod('deleteEvent', {'id': event.id});
 }
 
 class Event {
@@ -53,9 +63,19 @@ class Event {
   final String title;
   DateTime? startDate;
   DateTime? endDate;
-  String location;
+  String? location;
   bool isAllDay;
-  String notes;
+  String? notes;
+
+  Event(
+      {required this.calendar,
+      this.id = '',
+      required this.title,
+      this.startDate,
+      this.endDate,
+      this.location,
+      required this.isAllDay,
+      this.notes});
 
   Event.fromJson(Map<Object?, Object?> json)
       : calendar = json['calendar'] as String,
@@ -74,6 +94,17 @@ class Event {
   @override
   String toString() =>
       '$title start $startDate for ${endDate?.difference(startDate!).inMinutes}\t$notes';
+
+  Map<String, dynamic> toJson() => {
+        'calendar': calendar,
+        'id': id,
+        'title': title,
+        'startDate': startDate?.toUtc().toIso8601String(),
+        'endDate': endDate?.toUtc().toIso8601String(),
+        'location': location,
+        'isAllDay': isAllDay,
+        'notes': notes
+      };
 }
 
 class AppleCalendar {

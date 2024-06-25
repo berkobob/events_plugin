@@ -29,6 +29,18 @@ public class EventsPlugin: NSObject, FlutterPlugin {
                }
            }
         
+    case "addEvent":
+             if let args = call.arguments as? [String: Any?] {
+                 result(addEvent(args))
+             }
+             
+    case "deleteEvent":
+        if let args = call.arguments as? [String: Any?] {
+            if let id = args["id"] as? String {
+                result(deleteEvent(id))
+            }
+        }
+        
     default:
       result(FlutterMethodNotImplemented)
     }
@@ -84,4 +96,46 @@ public class EventsPlugin: NSObject, FlutterPlugin {
         }
         result(events)
        }
+    
+    func addEvent(_ json: [String: Any?]) -> [String: String] {
+        guard json["calendar"] != nil,
+            let calendarID: String = json["calendar"] as? String,
+            let calendar: EKCalendar = eventStore.calendar(withIdentifier: calendarID) else { return ["error": "Invalid calendar"] }
+          
+        let event: EKEvent = EKEvent(eventStore: eventStore)
+        let isoFormatter = ISO8601DateFormatter()
+        isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+          
+        event.calendar = calendar
+        event.title = json["title"] as? String
+        event.startDate = isoFormatter.date(from: (json["startDate"] as? String)!)
+        event.isAllDay = json["isAllDay"] as? Bool ?? false
+        event.endDate = isoFormatter.date(from: (json["endDate"] as? String)!)
+        event.notes = json["notes"] as? String
+          
+        print("Start \(json["startDate"]) or \(event.startDate)")
+        
+        do {
+            try eventStore.save(event, span: .thisEvent, commit: true)
+            print(event)
+        } catch let error {
+            return ["error": error.localizedDescription]
+        }
+        
+        return ["success": event.calendarItemIdentifier]
+      }
+      
+      func deleteEvent(_ id: String?) -> String? {
+          guard
+            let id = id,
+            let event: EKEvent = eventStore.calendarItem(withIdentifier: id) as? EKEvent else { return nil}
+          
+          do {
+              try eventStore.remove(event, span: .thisEvent, commit: true)
+          } catch {
+              print("Error deleting event \(event)")
+              return error.localizedDescription
+          }
+          return nil
+      }
 }
