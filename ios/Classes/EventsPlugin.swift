@@ -106,6 +106,7 @@ public class EventsPlugin: NSObject, FlutterPlugin {
           
         let event: EKEvent = EKEvent(eventStore: eventStore)
         let isoFormatter = ISO8601DateFormatter()
+        isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
           
         event.calendar = calendar
         event.title = json["title"] as? String

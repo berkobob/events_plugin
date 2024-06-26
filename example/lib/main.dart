@@ -68,13 +68,13 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> addEvent() async {
     if (selectedCalendar == null) return;
-    final result = await _eventsPlugin.addEvent(Event(
+    await _eventsPlugin.addEvent(Event(
         calendar: selectedCalendar!.id,
         title: 'Test new event',
         isAllDay: false,
         startDate: DateTime.now(),
         endDate: DateTime.now().add(const Duration(hours: 1))));
-    print(result);
+
     setState(() {
       getEvents(selectedCalendar!);
     });
