@@ -112,8 +112,6 @@ public class EventsPlugin: NSObject, FlutterPlugin {
         event.isAllDay = json["isAllDay"] as? Bool ?? false
         event.endDate = isoFormatter.date(from: (json["endDate"] as? String)!)
         event.notes = json["notes"] as? String
-          
-        print("Start \(json["startDate"]) or \(event.startDate)")
         
         do {
             try eventStore.save(event, span: .thisEvent, commit: true)
